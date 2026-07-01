@@ -23,7 +23,14 @@ def content_hash(path: Path) -> str:
 def _load_for_hash(path: Path) -> Image.Image:
     if path.suffix.lower() in RAW_EXTENSIONS:
         with rawpy.imread(str(path)) as raw:
-            thumb = raw.extract_thumb()
+            try:
+                thumb = raw.extract_thumb()
+            except (rawpy.LibRawNoThumbnailError, rawpy.LibRawUnsupportedThumbnailError):
+                # Some RAW files (notably certain phone-camera DNGs) don't embed
+                # a thumbnail libraw can extract. Fall back to a fast half-size
+                # decode of the full raw data purely for hashing purposes.
+                rgb = raw.postprocess(half_size=True, use_camera_wb=True)
+                return Image.fromarray(rgb)
         if thumb.format == rawpy.ThumbFormat.JPEG:
             return Image.open(io.BytesIO(thumb.data))
         return Image.fromarray(thumb.data)
