@@ -73,5 +73,15 @@ def publish(config: PipelineConfig) -> None:
         manifest.close()
 
 
+@main.command()
+@click.pass_context
+def run(ctx: click.Context) -> None:
+    """Run all stages in order: dedup, convert-raw, caption, publish."""
+    ctx.invoke(dedup)
+    ctx.invoke(convert_raw_cmd)
+    ctx.invoke(caption)
+    ctx.invoke(publish)
+
+
 if __name__ == "__main__":
     main()
