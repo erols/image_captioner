@@ -908,9 +908,8 @@ def test_group_duplicates_groups_within_threshold_keeping_shortest_name() -> Non
     a = Path("photo.jpg")
     a_copy = Path("photo_copy.jpg")
     b = Path("other.jpg")
-    phashes = {a: "0" * 16, a_copy: "1" * 16, b: "f" * 16}
-    # a and a_copy differ in every bit vs each other in this synthetic hash,
-    # so instead assert on hamming_distance-driven grouping using real values:
+    # a and a_copy differ by one bit (within threshold); b differs from both
+    # in every bit (far outside threshold).
     phashes = {a: "ffff000000000000", a_copy: "ffff000000000001", b: "0000ffffffffffff"}
 
     groups = group_duplicates([a, a_copy, b], phashes, max_distance=2)
