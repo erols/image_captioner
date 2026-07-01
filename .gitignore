@@ -1,0 +1,6 @@
+.venv/
+.idea/
+.jbeval/
+excalidraw.log
+__pycache__/
+*.pyc
