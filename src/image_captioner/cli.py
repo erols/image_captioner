@@ -22,6 +22,7 @@ def main(ctx: click.Context, config_path: Path) -> None:
     ctx.obj = PipelineConfig.from_toml(config_path)
 
 
+from image_captioner.caption import run_caption
 from image_captioner.dedup import run_dedup
 from image_captioner.manifest import Manifest
 from image_captioner.raw_convert import run_convert_raw
@@ -45,6 +46,17 @@ def convert_raw_cmd(config: PipelineConfig) -> None:
     manifest = Manifest(config.manifest_path)
     try:
         run_convert_raw(config.raw_originals_dir, manifest)
+    finally:
+        manifest.close()
+
+
+@main.command()
+@click.pass_obj
+def caption(config: PipelineConfig) -> None:
+    """Caption each pending, raw-converted image via the local VLM."""
+    manifest = Manifest(config.manifest_path)
+    try:
+        run_caption(config, manifest)
     finally:
         manifest.close()
 
