@@ -4,3 +4,5 @@
 excalidraw.log
 __pycache__/
 *.pyc
+.worktrees/
+.superpowers/
