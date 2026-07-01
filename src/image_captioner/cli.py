@@ -24,6 +24,7 @@ def main(ctx: click.Context, config_path: Path) -> None:
 
 from image_captioner.dedup import run_dedup
 from image_captioner.manifest import Manifest
+from image_captioner.raw_convert import run_convert_raw
 
 
 @main.command()
@@ -33,6 +34,17 @@ def dedup(config: PipelineConfig) -> None:
     manifest = Manifest(config.manifest_path)
     try:
         run_dedup(config.input_dir, config.duplicates_dir, manifest, config.phash_max_distance)
+    finally:
+        manifest.close()
+
+
+@main.command(name="convert-raw")
+@click.pass_obj
+def convert_raw_cmd(config: PipelineConfig) -> None:
+    """Convert RAW originals to JPEG and archive the originals."""
+    manifest = Manifest(config.manifest_path)
+    try:
+        run_convert_raw(config.raw_originals_dir, manifest)
     finally:
         manifest.close()
 
