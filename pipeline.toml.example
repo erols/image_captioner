@@ -1,0 +1,36 @@
+# Example configuration for image-captioner.
+# Copy this file to pipeline.toml and adjust paths for your machine, then run:
+#   uv run image-captioner --config pipeline.toml run
+
+# Base directory all other relative paths below are resolved against. Required.
+base_dir = "/home/you/Pictures/captioner-run"
+
+# Folder containing the source images/RAW files to process (relative to base_dir).
+input_dir = "input"
+
+# Folder where renamed images + OKF markdown notes are written (relative to base_dir).
+output_dir = "output"
+
+# Folder where one image from each detected duplicate group is archived (relative to base_dir).
+duplicates_dir = "_duplicates"
+
+# Folder where original RAW files are archived after conversion to JPEG (relative to base_dir).
+raw_originals_dir = "_raw_originals"
+
+# Path to the SQLite state manifest tracking each image through the pipeline (relative to base_dir).
+manifest_path = "manifest.sqlite3"
+
+# HTTP endpoint of the running llama-server instance (see scripts/run_llama_server.sh).
+vlm_endpoint = "http://127.0.0.1:8080"
+
+# Longest edge, in pixels, of the resized copy sent to the VLM for captioning.
+resize_max_dim = 1568
+
+# JPEG quality (1-100) used when saving the resized copy sent to the VLM.
+resize_jpeg_quality = 92
+
+# Number of retries (with backoff) for a failed VLM caption request before marking it failed.
+max_retries = 2
+
+# Maximum perceptual-hash Hamming distance for two images to be considered duplicates.
+phash_max_distance = 5
