@@ -20,12 +20,11 @@ def convert_raw_to_jpeg(raw_path: Path, dest_path: Path, quality: int = 95) -> N
 def run_convert_raw(raw_originals_dir: Path, manifest: Manifest) -> None:
     raw_originals_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_pending = [
-        r
-        for r in manifest.pending("raw")
-        if Path(r.current_path).suffix.lower() in RAW_EXTENSIONS
+    records = manifest.pending("raw") + manifest.failed("raw")
+    raw_records = [
+        r for r in records if Path(r.current_path).suffix.lower() in RAW_EXTENSIONS
     ]
-    for record in raw_pending:
+    for record in raw_records:
         raw_path = Path(record.current_path)
         jpeg_path = raw_path.with_suffix(".jpg")
         try:
@@ -38,6 +37,6 @@ def run_convert_raw(raw_originals_dir: Path, manifest: Manifest) -> None:
         manifest.update_stage(record.original_path, "raw", "done", current_path=str(jpeg_path))
 
     # Non-RAW images simply pass through this stage.
-    for record in manifest.pending("raw"):
+    for record in records:
         if Path(record.current_path).suffix.lower() not in RAW_EXTENSIONS:
             manifest.update_stage(record.original_path, "raw", "done")

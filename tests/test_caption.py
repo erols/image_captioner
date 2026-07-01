@@ -87,6 +87,39 @@ def test_caption_retries_then_marks_failed(mock_sleep, tmp_path: Path) -> None:
 
 
 @patch("image_captioner.caption.time.sleep")
+def test_caption_retries_previously_failed_record_on_rerun(mock_sleep, tmp_path: Path) -> None:
+    """A record marked 'failed' in an earlier run must be retried (not skipped) on a later run."""
+    config = _config(tmp_path)
+    image_path = tmp_path / "photo.jpg"
+    make_solid_image(image_path, (400, 300), (10, 20, 30))
+
+    manifest = Manifest(config.manifest_path)
+    try:
+        manifest.register(image_path, "hash1")
+        manifest.update_stage(str(image_path), "raw", "done")
+        manifest.update_stage(
+            str(image_path), "caption", "failed", error_message="previous run: bad json"
+        )
+
+        record = manifest.get(str(image_path))
+        assert record.caption_status == "failed"
+
+        fake_result = CaptionResult(title="Retried", caption="Now works", tags=["ok"])
+        with patch(
+            "image_captioner.caption.request_caption", return_value=fake_result
+        ) as mock_request:
+            run_caption(config, manifest)
+            mock_request.assert_called_once()
+
+        record = manifest.get(str(image_path))
+        assert record.caption_status == "done"
+        assert record.title == "Retried"
+        assert record.caption == "Now works"
+    finally:
+        manifest.close()
+
+
+@patch("image_captioner.caption.time.sleep")
 def test_caption_succeeds_after_one_retry(mock_sleep, tmp_path: Path) -> None:
     config = _config(tmp_path)
     image_path = tmp_path / "photo.jpg"

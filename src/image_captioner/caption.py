@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_caption(config: PipelineConfig, manifest: Manifest) -> None:
-    for record in manifest.pending("caption"):
+    for record in manifest.pending("caption") + manifest.failed("caption"):
         if record.raw_status != "done":
             continue  # not yet converted from RAW (or still pending/failed)
 

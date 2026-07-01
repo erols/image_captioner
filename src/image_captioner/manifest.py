@@ -144,3 +144,12 @@ class Manifest:
             f"SELECT * FROM images WHERE {stage}_status = 'failed'"
         ).fetchall()
         return [ImageRecord.from_row(r) for r in rows]
+
+    def status_counts(self, stage: str) -> dict[str, int]:
+        """Count records per status value for the given stage's status column."""
+        if stage not in STAGES:
+            raise ValueError(f"unknown stage: {stage}")
+        rows = self._conn.execute(
+            f"SELECT {stage}_status AS status, COUNT(*) AS n FROM images GROUP BY {stage}_status"
+        ).fetchall()
+        return {row["status"]: row["n"] for row in rows}

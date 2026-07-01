@@ -12,7 +12,7 @@ from image_captioner.slug import build_filename_stem
 def run_publish(output_dir: Path, manifest: Manifest) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for record in manifest.pending("publish"):
+    for record in manifest.pending("publish") + manifest.failed("publish"):
         if record.caption_status != "done":
             continue  # not yet captioned
 

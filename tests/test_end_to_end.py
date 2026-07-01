@@ -4,7 +4,7 @@ from unittest.mock import patch
 from click.testing import CliRunner
 
 from image_captioner.cli import main
-from image_captioner.vlm_client import CaptionResult
+from image_captioner.vlm_client import CaptionResult, VLMResponseError
 from tests.helpers import make_solid_image
 
 
@@ -42,3 +42,22 @@ def test_full_pipeline_end_to_end(tmp_path: Path) -> None:
     assert "type: Image Caption" in content
     assert "A calm, dimly lit blue-toned room" in content
     assert f"![Calm Blue Room]({jpg_files[0].name})" in content
+
+
+def test_run_exits_nonzero_when_a_stage_has_failed_records(tmp_path: Path) -> None:
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+    make_solid_image(input_dir / "photo.jpg", (400, 300), (10, 20, 30))
+    config_path = _write_config(tmp_path)
+
+    runner = CliRunner()
+    with patch(
+        "image_captioner.caption.time.sleep"
+    ), patch(
+        "image_captioner.caption.request_caption",
+        side_effect=VLMResponseError("permanently broken"),
+    ):
+        result = runner.invoke(main, ["--config", str(config_path), "run"])
+
+    assert result.exit_code != 0
+    assert "caption: 0 done, 1 failed" in result.output
