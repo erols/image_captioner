@@ -25,6 +25,7 @@ def main(ctx: click.Context, config_path: Path) -> None:
 from image_captioner.caption import run_caption
 from image_captioner.dedup import run_dedup
 from image_captioner.manifest import Manifest
+from image_captioner.publish import run_publish
 from image_captioner.raw_convert import run_convert_raw
 
 
@@ -57,6 +58,17 @@ def caption(config: PipelineConfig) -> None:
     manifest = Manifest(config.manifest_path)
     try:
         run_caption(config, manifest)
+    finally:
+        manifest.close()
+
+
+@main.command()
+@click.pass_obj
+def publish(config: PipelineConfig) -> None:
+    """Rename images and write OKF markdown into the output bundle."""
+    manifest = Manifest(config.manifest_path)
+    try:
+        run_publish(config.output_dir, manifest)
     finally:
         manifest.close()
 
