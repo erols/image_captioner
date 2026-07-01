@@ -22,7 +22,6 @@ def run_publish(output_dir: Path, manifest: Manifest) -> None:
         md_dest = output_dir / f"{stem}.md"
 
         try:
-            shutil.move(str(src_path), image_dest)
             doc = build_okf_document(
                 title=record.title or "Untitled",
                 caption=record.caption or "",
@@ -30,6 +29,7 @@ def run_publish(output_dir: Path, manifest: Manifest) -> None:
                 image_relative_path=image_dest.name,
             )
             md_dest.write_text(doc, encoding="utf-8")
+            shutil.move(str(src_path), image_dest)
         except OSError as exc:
             manifest.update_stage(
                 record.original_path, "publish", "failed", error_message=str(exc)
