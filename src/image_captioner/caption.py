@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import tempfile
+import time
 from pathlib import Path
 
 import requests
@@ -55,6 +56,10 @@ def run_caption(config: PipelineConfig, manifest: Manifest) -> None:
                     image_path,
                     exc,
                 )
+                # Apply exponential backoff before retrying, but not after the final attempt
+                if attempt < config.max_retries:
+                    backoff_time = 2 ** attempt
+                    time.sleep(backoff_time)
 
         if last_error is not None:
             manifest.update_stage(

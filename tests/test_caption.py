@@ -61,7 +61,8 @@ def test_caption_skips_images_not_yet_raw_converted(tmp_path: Path) -> None:
         manifest.close()
 
 
-def test_caption_retries_then_marks_failed(tmp_path: Path) -> None:
+@patch("image_captioner.caption.time.sleep")
+def test_caption_retries_then_marks_failed(mock_sleep, tmp_path: Path) -> None:
     config = _config(tmp_path)
     image_path = tmp_path / "photo.jpg"
     make_solid_image(image_path, (400, 300), (10, 20, 30))
@@ -85,7 +86,8 @@ def test_caption_retries_then_marks_failed(tmp_path: Path) -> None:
         manifest.close()
 
 
-def test_caption_succeeds_after_one_retry(tmp_path: Path) -> None:
+@patch("image_captioner.caption.time.sleep")
+def test_caption_succeeds_after_one_retry(mock_sleep, tmp_path: Path) -> None:
     config = _config(tmp_path)
     image_path = tmp_path / "photo.jpg"
     make_solid_image(image_path, (400, 300), (10, 20, 30))
