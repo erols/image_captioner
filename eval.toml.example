@@ -1,0 +1,38 @@
+# Example configuration for the image-captioner model evaluation harness.
+# Copy this file to eval.toml and adjust paths for your machine, then run:
+#   uv run image-captioner evaluate --config eval.toml
+#
+# The judge calls OpenRouter; set OPENROUTER_API_KEY in your environment
+# before running (never put it in this file).
+
+# Folder of images to caption and score. Add or remove images anytime -
+# the harness just processes whatever's here at run time.
+image_dir = "/home/you/Pictures/test_pics"
+
+# OpenRouter model id used as the scoring judge.
+judge_model = "anthropic/claude-opus-4-8"
+
+# Where the markdown comparison report is written.
+output_report = "eval-report.md"
+
+# Where captions + timings + judge scores are persisted, incrementally,
+# as the run progresses. Reusable via `--from-captions` to re-run just
+# the judge + report phases without re-captioning.
+results_path = "eval-results.json"
+
+# Local port the harness launches each candidate's llama-server on.
+# Deliberately different from the pipeline's default 8080 so an eval run
+# doesn't collide with a llama-server you already have running.
+port = 8090
+
+# Candidate VLMs to compare. Add as many as you like - the harness starts
+# and stops llama-server once per candidate, in order.
+[[candidates]]
+name = "qwen3-vl-8b"
+model_path = "/mnt/models/hf_ggufs/vlm/unsloth_Qwen3-VL-8B-Instruct-BF16.gguf"
+mmproj_path = "/mnt/models/hf_ggufs/vlm/mmproj/qwen3vl-8b-mmproj-F16.gguf"
+
+[[candidates]]
+name = "joycaption-beta-one"
+model_path = "/mnt/models/hf_ggufs/vlm/llama-joycaption-beta-one-hf-llava.f16.gguf"
+mmproj_path = "/mnt/models/hf_ggufs/vlm/mmproj/joycaption-mmproj-f16.gguf"

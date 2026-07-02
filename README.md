@@ -79,3 +79,31 @@ uv run image-captioner --config pipeline.toml publish
 Each stage command prints a one-line `done`/`failed`/`skipped` summary and
 exits non-zero if any image failed that stage; simply re-run the same
 command to retry failed images.
+
+## Evaluating candidate models
+
+Before settling on a default VLM, compare candidates against a shared set of
+images. Copy `eval.toml.example` to `eval.toml`, list the candidate models
+you want to compare, and set `OPENROUTER_API_KEY` in your environment (the
+harness uses OpenRouter as an independent LLM judge — never a candidate
+model judging itself):
+
+```bash
+export OPENROUTER_API_KEY=sk-or-...
+uv run image-captioner evaluate --config eval.toml
+```
+
+The harness starts `llama-server` for each candidate in turn (reusing
+`scripts/run_llama_server.sh`), captions every image in `image_dir`, then
+scores every caption with the judge model on four axes: accuracy,
+descriptiveness, evocativeness, and mood fit. Results are written
+incrementally to `eval-results.json` as the run progresses, and a markdown
+comparison report is written to `output_report` (`eval-report.md` by
+default) when it finishes.
+
+If you only want to re-run the judge and report — for example, after
+tweaking the rubric — skip the expensive local captioning phase:
+
+```bash
+uv run image-captioner evaluate --config eval.toml --from-captions eval-results.json
+```
