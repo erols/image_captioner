@@ -65,12 +65,30 @@ def parse_judge_json(content: str) -> JudgeScores:
     for key in ("accuracy", "descriptiveness", "evocativeness", "mood_fit", "reasoning"):
         if key not in data:
             raise JudgeResponseError(f"missing key {key!r} in judge JSON: {data!r}")
+    try:
+        accuracy = int(data["accuracy"])
+        descriptiveness = int(data["descriptiveness"])
+        evocativeness = int(data["evocativeness"])
+        mood_fit = int(data["mood_fit"])
+        reasoning = str(data["reasoning"])
+    except (ValueError, TypeError) as exc:
+        raise JudgeResponseError(f"invalid score value in judge JSON: {data!r}") from exc
+    for score_name, score_value in (
+        ("accuracy", accuracy),
+        ("descriptiveness", descriptiveness),
+        ("evocativeness", evocativeness),
+        ("mood_fit", mood_fit),
+    ):
+        if not 1 <= score_value <= 10:
+            raise JudgeResponseError(
+                f"score {score_name!r} out of range 1-10: {score_value!r} in judge JSON: {data!r}"
+            )
     return JudgeScores(
-        accuracy=int(data["accuracy"]),
-        descriptiveness=int(data["descriptiveness"]),
-        evocativeness=int(data["evocativeness"]),
-        mood_fit=int(data["mood_fit"]),
-        reasoning=str(data["reasoning"]),
+        accuracy=accuracy,
+        descriptiveness=descriptiveness,
+        evocativeness=evocativeness,
+        mood_fit=mood_fit,
+        reasoning=reasoning,
     )
 
 

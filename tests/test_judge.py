@@ -39,6 +39,24 @@ def test_parse_judge_json_malformed_raises() -> None:
         parse_judge_json("not json at all")
 
 
+def test_parse_judge_json_non_numeric_score_raises() -> None:
+    content = (
+        '{"accuracy": "N/A", "descriptiveness": 7, "evocativeness": 9, '
+        '"mood_fit": 6, "reasoning": "Vivid and accurate."}'
+    )
+    with pytest.raises(JudgeResponseError):
+        parse_judge_json(content)
+
+
+def test_parse_judge_json_out_of_range_score_raises() -> None:
+    content = (
+        '{"accuracy": 15, "descriptiveness": 7, "evocativeness": 9, '
+        '"mood_fit": 6, "reasoning": "Vivid and accurate."}'
+    )
+    with pytest.raises(JudgeResponseError):
+        parse_judge_json(content)
+
+
 def test_request_judge_score_posts_expected_payload_and_parses_response(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
