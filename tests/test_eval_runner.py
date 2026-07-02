@@ -65,7 +65,11 @@ def test_run_captioning_writes_results_for_each_candidate_and_image(tmp_path: Pa
     ):
         results = run_captioning(config)
 
-    mock_start.assert_called_once_with(config.candidates[0], config.port)
+    mock_start.assert_called_once_with(
+        config.candidates[0],
+        config.port,
+        config.results_path.parent / "cand-a-llama-server.log",
+    )
     mock_wait.assert_called_once_with(config.port, config.server_startup_timeout)
     mock_stop.assert_called_once_with(fake_process)
 

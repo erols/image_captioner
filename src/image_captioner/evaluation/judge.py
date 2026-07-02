@@ -5,6 +5,7 @@ import base64
 import json
 import logging
 import os
+import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +14,7 @@ import requests
 
 from image_captioner.evaluation.config import EvalConfig
 from image_captioner.evaluation.runner import write_results
+from image_captioner.resize import resize_for_vlm
 
 logger = logging.getLogger(__name__)
 
@@ -93,14 +95,23 @@ def parse_judge_json(content: str) -> JudgeScores:
 
 
 def request_judge_score(
-    judge_model: str, image_path: Path, title: str, caption: str, timeout: float = 120.0
+    judge_model: str,
+    image_path: Path,
+    title: str,
+    caption: str,
+    max_dim: int = 1568,
+    quality: int = 92,
+    timeout: float = 120.0,
 ) -> JudgeScores:
     try:
         api_key = os.environ["OPENROUTER_API_KEY"]
     except KeyError as exc:
         raise JudgeResponseError("OPENROUTER_API_KEY environment variable is not set") from exc
 
-    b64 = _encode_image(image_path)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        resized_path = Path(tmp_dir) / "resized.jpg"
+        resize_for_vlm(image_path, resized_path, max_dim=max_dim, quality=quality)
+        b64 = _encode_image(resized_path)
     prompt = RUBRIC_PROMPT_TEMPLATE.format(title=title, caption=caption)
     payload = {
         "model": judge_model,
@@ -140,7 +151,12 @@ def run_judging(config: EvalConfig, results: dict) -> dict:
             for attempt in range(config.max_retries + 1):
                 try:
                     scores = request_judge_score(
-                        config.judge_model, image_path, record["title"], record["caption"]
+                        config.judge_model,
+                        image_path,
+                        record["title"],
+                        record["caption"],
+                        max_dim=config.resize_max_dim,
+                        quality=config.resize_jpeg_quality,
                     )
                     record["scores"] = {
                         "accuracy": scores.accuracy,

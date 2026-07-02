@@ -101,7 +101,8 @@ def run_captioning(config: EvalConfig) -> dict:
 
     for candidate in config.candidates:
         endpoint = f"http://127.0.0.1:{config.port}"
-        process = start_server(candidate, config.port)
+        log_path = config.results_path.parent / f"{candidate.name}-llama-server.log"
+        process = start_server(candidate, config.port, log_path)
         try:
             wait_for_health(config.port, config.server_startup_timeout)
         except ServerStartupError as exc:
